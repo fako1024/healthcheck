@@ -9,6 +9,7 @@ import (
 
 	"github.com/fako1024/healthcheck/errors"
 
+	// Import SQL drivers
 	_ "github.com/go-sql-driver/mysql"
 )
 
