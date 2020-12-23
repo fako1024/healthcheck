@@ -11,6 +11,7 @@ var AllPlugins = []Plugin{
 	NewProc(),
 	NewTLS(),
 	NewDNS(),
+	NewPing(),
 }
 
 // Plugin denotes a generic health check plugin
