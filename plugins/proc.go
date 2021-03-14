@@ -13,6 +13,11 @@ import (
 	"github.com/fako1024/healthcheck/errors"
 )
 
+const (
+	procPath = "/proc"
+	statFile = "stat"
+)
+
 // Proc denotes a Proc connection health check plugin
 type Proc struct {
 	name     string
@@ -39,15 +44,23 @@ func (t *Proc) Run() (errs errors.Errors) {
 		return
 	}
 
+	dir, err := os.Open(procPath)
+	if err != nil {
+		return errors.Errors{
+			fmt.Errorf("Error parsing system processes: %s", err),
+		}
+	}
+	defer dir.Close()
+
 	// Extract list of running processes
-	processes, err := ioutil.ReadDir("/proc")
+	processes, err := dir.Readdirnames(0)
 	if err != nil {
 		return errors.Errors{
 			fmt.Errorf("Error parsing system processes: %s", err),
 		}
 	}
 
-	// Checkk all provided binaries
+	// Check all provided binaries
 	for _, binary := range t.binaries {
 		if err := t.checkBinary(processes, binary); err != nil {
 			errs = append(errs, err)
@@ -57,30 +70,30 @@ func (t *Proc) Run() (errs errors.Errors) {
 	return
 }
 
-func (t *Proc) checkBinary(processes []os.FileInfo, expectedBinary string) error {
+func (t *Proc) checkBinary(processes []string, expectedBinary string) error {
 	for _, process := range processes {
-		if process.IsDir() {
-			if _, err := strconv.Atoi(process.Name()); err == nil {
 
-				path := filepath.Join("/proc", process.Name(), "stat")
-				if _, err := os.Stat(path); err == nil {
+		if _, err := strconv.Atoi(process); err == nil {
 
-					statBytes, err := ioutil.ReadFile(path)
-					if err != nil {
-						return fmt.Errorf("Failed to read stat path %s: %s", path, err)
-					}
+			path := filepath.Join(procPath, process, statFile)
+			if _, err := os.Stat(path); err == nil {
 
-					// Parse binary name from stat file
-					statData := string(statBytes)
-					binStart := strings.IndexRune(statData, '(') + 1
-					binEnd := strings.IndexRune(statData[binStart:], ')')
-					binary := statData[binStart : binStart+binEnd]
+				statBytes, err := ioutil.ReadFile(path)
+				if err != nil {
+					return fmt.Errorf("Failed to read stat path %s: %s", path, err)
+				}
 
-					if strings.Contains(binary, expectedBinary) {
-						return nil
-					}
+				// Parse binary name from stat file
+				statData := string(statBytes)
+				binStart := strings.IndexRune(statData, '(') + 1
+				binEnd := strings.IndexRune(statData[binStart:], ')')
+				binary := statData[binStart : binStart+binEnd]
+
+				if strings.Contains(binary, expectedBinary) {
+					return nil
 				}
 			}
+
 		}
 	}
 
