@@ -49,12 +49,13 @@ func (t *SSH) runEndpoint(endpoint string) error {
 		Auth: []ssh.AuthMethod{
 			ssh.Password("test"),
 		},
+		/* #nosec */
 		HostKeyCallback: ssh.InsecureIgnoreHostKey(),
 	}
 
-	_, err := ssh.Dial("tcp", endpoint, sshConfig)
+	_, err := ssh.Dial(protoTCP, endpoint, sshConfig)
 	if err != nil && !strings.Contains(err.Error(), "ssh: unable to authenticate, attempted methods") {
-		return fmt.Errorf("Error establishing SSH connection to endpoint %s: %s", endpoint, err)
+		return fmt.Errorf("error establishing SSH connection to endpoint %s: %s", endpoint, err)
 	}
 
 	return nil

@@ -13,11 +13,11 @@ import (
 // Ping denotes a Ping connection health check plugin
 type Ping struct {
 	name       string
+	endpoints  []string
 	count      int
 	interval   time.Duration
 	timeout    time.Duration
 	privileged bool
-	endpoints  []string
 }
 
 // NewPing instantiates a new Ping plugin
@@ -55,7 +55,7 @@ func (t *Ping) runEndpoint(endpoint string) error {
 	// Attempt to instantiate the pinger
 	pinger, err := ping.NewPinger(endpoint)
 	if err != nil {
-		return fmt.Errorf("Error preparing ping to %s: %s", endpoint, err)
+		return fmt.Errorf("error preparing ping to %s: %s", endpoint, err)
 	}
 	pinger.Count = t.count
 	pinger.Interval = t.interval
@@ -64,13 +64,13 @@ func (t *Ping) runEndpoint(endpoint string) error {
 
 	// Execute the ping
 	if err = pinger.Run(); err != nil {
-		return fmt.Errorf("Error executing ping to %s: %s", endpoint, err)
+		return fmt.Errorf("error executing ping to %s: %s", endpoint, err)
 	}
 
 	// Check for packet loss
 	stats := pinger.Statistics()
 	if stats.PacketsRecv < stats.PacketsSent {
-		return fmt.Errorf("Encountered packet loss to %s: %d / %d probes received / sent", endpoint, stats.PacketsRecv, stats.PacketsSent)
+		return fmt.Errorf("encountered packet loss to %s: %d / %d probes received / sent", endpoint, stats.PacketsRecv, stats.PacketsSent)
 	}
 
 	return nil

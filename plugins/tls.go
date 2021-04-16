@@ -46,7 +46,7 @@ func (t *TLS) runEndpoint(endpoint string) error {
 
 	endpointParams := strings.Split(endpoint, ":")
 	if len(endpointParams) < 2 || len(endpointParams) > 3 {
-		return fmt.Errorf("Invalid enpoint format: %s", endpoint)
+		return fmt.Errorf("invalid enpoint format: %s", endpoint)
 	}
 
 	// Initiate TLS parameters and override hostname if required
@@ -59,20 +59,20 @@ func (t *TLS) runEndpoint(endpoint string) error {
 	}
 
 	// Attempt to establish the TLS connection
-	conn, err := tls.Dial("tcp", endpoint, &config)
+	conn, err := tls.Dial(protoTCP, endpoint, &config)
 	if err != nil {
-		return fmt.Errorf("Error establishing TLS connection to %s: %s", endpoint, err)
+		return fmt.Errorf("error establishing TLS connection to %s: %s", endpoint, err)
 	}
 
 	state := conn.ConnectionState()
-	if !state.HandshakeComplete || !state.NegotiatedProtocolIsMutual {
-		conn.Close()
-		return fmt.Errorf("Failed to complete TLS handshake: (complete: %v , mutual: %v)", state.HandshakeComplete, state.NegotiatedProtocolIsMutual)
+	if !state.HandshakeComplete {
+		err = conn.Close()
+		return fmt.Errorf("failed to complete TLS handshake: (complete: %v), close err: %s", state.HandshakeComplete, err)
 	}
 
 	// Close the connection
 	if err = conn.Close(); err != nil {
-		return fmt.Errorf("Error closing TLS connection to %s: %s", endpoint, err)
+		return fmt.Errorf("error closing TLS connection to %s: %s", endpoint, err)
 	}
 
 	return nil

@@ -2,6 +2,10 @@ package plugins
 
 import "github.com/fako1024/healthcheck/errors"
 
+const (
+	protoTCP = "tcp"
+)
+
 // AllPlugins denotes a list of all available plugins
 var AllPlugins = []Plugin{
 	NewTCP(),

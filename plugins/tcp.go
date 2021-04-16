@@ -18,7 +18,7 @@ type TCP struct {
 // NewTCP instantiates a new TCP plugin
 func NewTCP() *TCP {
 	return &TCP{
-		name:      "tcp",
+		name:      protoTCP,
 		endpoints: []string{},
 	}
 }
@@ -44,14 +44,14 @@ func (t *TCP) Run() (errs errors.Errors) {
 func (t *TCP) runEndpoint(endpoint string) error {
 
 	// Attempt to establish the TCP connection
-	conn, err := net.Dial("tcp", endpoint)
+	conn, err := net.Dial(protoTCP, endpoint)
 	if err != nil {
-		return fmt.Errorf("Error establishing TCP connection to %s: %s", endpoint, err)
+		return fmt.Errorf("error establishing TCP connection to %s: %s", endpoint, err)
 	}
 
 	// Close the connection
 	if err = conn.Close(); err != nil {
-		return fmt.Errorf("Error closing TCP connection to %s: %s", endpoint, err)
+		return fmt.Errorf("error closing TCP connection to %s: %s", endpoint, err)
 	}
 
 	return nil

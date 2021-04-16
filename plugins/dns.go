@@ -17,10 +17,10 @@ import (
 type DNS struct {
 	name     string
 	server   string
-	queries  []string
 	protocol string
 
 	resolver *net.Resolver
+	queries  []string
 }
 
 // NewDNS instantiates a new DNS plugin
@@ -64,23 +64,9 @@ func (t *DNS) Run() (errs errors.Errors) {
 func (t *DNS) runEndpoint(query string) error {
 
 	// Parse arguments
-	args := strings.Split(query, ";")
-	if len(args) < 3 {
-		return fmt.Errorf("Invalid DNS query request, expected syntax <TYPE>;<REQUEST>;<EXPECTED RESULT>[;<PROTOCOL OVERRIDE>], got: %s", query)
-	}
-
-	// Override default resolver, if requested
-	resolver := t.resolver
-	if len(args) == 4 {
-		resolver = &net.Resolver{
-			PreferGo: true,
-			Dial: func(ctx context.Context, network, address string) (net.Conn, error) {
-				d := net.Dialer{
-					Timeout: 10 * time.Second,
-				}
-				return d.DialContext(ctx, args[3], t.server)
-			},
-		}
+	args, resolver, err := t.getArguments(query)
+	if err != nil {
+		return err
 	}
 
 	// Perform query
@@ -111,20 +97,48 @@ func (t *DNS) runEndpoint(query string) error {
 
 	// Default: Unsupported
 	default:
-		return fmt.Errorf("Unsupported query type requested: %s", args[0])
+		return fmt.Errorf("unsupported query type requested: %s", args[0])
 	}
 
 	// Trivial checks
-	refEntries := strings.Split(args[2], ",")
+	return t.validateEntries(entries, strings.Split(args[2], ","))
+}
+
+func (t *DNS) getArguments(query string) ([]string, *net.Resolver, error) {
+
+	// Parse arguments
+	args := strings.Split(query, ";")
+	if len(args) < 3 {
+		return nil, nil, fmt.Errorf("invalid DNS query request, expected syntax <TYPE>;<REQUEST>;<EXPECTED RESULT>[;<PROTOCOL OVERRIDE>], got: %s", query)
+	}
+
+	// Override default resolver, if requested
+	resolver := t.resolver
+	if len(args) == 4 {
+		resolver = &net.Resolver{
+			PreferGo: true,
+			Dial: func(ctx context.Context, network, address string) (net.Conn, error) {
+				d := net.Dialer{
+					Timeout: 10 * time.Second,
+				}
+				return d.DialContext(ctx, args[3], t.server)
+			},
+		}
+	}
+
+	return args, resolver, nil
+}
+
+func (t *DNS) validateEntries(entries, refEntries []string) error {
 	if len(entries) != len(refEntries) {
-		return fmt.Errorf("Query result does not match expectation, want %v, have %v", refEntries, entries)
+		return fmt.Errorf("query result does not match expectation, want %v, have %v", refEntries, entries)
 	}
 
 	// Sort both reference + input slices for comparison
 	sort.Slice(entries, func(i, j int) bool { return entries[i] < entries[j] })
 	sort.Slice(refEntries, func(i, j int) bool { return refEntries[i] < refEntries[j] })
 	if !stringsEqual(entries, refEntries) {
-		return fmt.Errorf("Query result does not match expectation, want %v, have %v", refEntries, entries)
+		return fmt.Errorf("query result does not match expectation, want %v, have %v", refEntries, entries)
 	}
 
 	return nil

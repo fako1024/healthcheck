@@ -53,13 +53,13 @@ func (t *HTTP) Run() (errs errors.Errors) {
 	// Execute request
 	if err := fasthttp.DoTimeout(req, resp, t.timeout); err != nil {
 		return errors.Errors{
-			fmt.Errorf("Error performing request to %s: %s", t.uri, err),
+			fmt.Errorf("error performing request to %s: %s", t.uri, err),
 		}
 	}
 
 	if resp.StatusCode() != t.expectedStatusCode {
 		return errors.Errors{
-			fmt.Errorf("Unexpected HTTP status code in call to %s, want %d, have %d", t.uri, t.expectedStatusCode, resp.StatusCode()),
+			fmt.Errorf("unexpected HTTP status code in call to %s, want %d, have %d", t.uri, t.expectedStatusCode, resp.StatusCode()),
 		}
 	}
 
