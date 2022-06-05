@@ -52,6 +52,7 @@ func (t *TLS) runEndpoint(endpoint string) error {
 	// Initiate TLS parameters and override hostname if required
 	config := tls.Config{
 		InsecureSkipVerify: false,
+		MinVersion:         tls.VersionTLS12,
 	}
 	if len(endpointParams) == 3 {
 		config.ServerName = endpointParams[0]
@@ -61,18 +62,18 @@ func (t *TLS) runEndpoint(endpoint string) error {
 	// Attempt to establish the TLS connection
 	conn, err := tls.Dial(protoTCP, endpoint, &config)
 	if err != nil {
-		return fmt.Errorf("error establishing TLS connection to %s: %s", endpoint, err)
+		return fmt.Errorf("error establishing TLS connection to %s: %w", endpoint, err)
 	}
 
 	state := conn.ConnectionState()
 	if !state.HandshakeComplete {
 		err = conn.Close()
-		return fmt.Errorf("failed to complete TLS handshake: (complete: %v), close err: %s", state.HandshakeComplete, err)
+		return fmt.Errorf("failed to complete TLS handshake: (complete: %v), close err: %w", state.HandshakeComplete, err)
 	}
 
 	// Close the connection
 	if err = conn.Close(); err != nil {
-		return fmt.Errorf("error closing TLS connection to %s: %s", endpoint, err)
+		return fmt.Errorf("error closing TLS connection to %s: %w", endpoint, err)
 	}
 
 	return nil

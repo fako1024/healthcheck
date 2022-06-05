@@ -53,7 +53,7 @@ func (t *HTTP) Run() (errs errors.Errors) {
 	// Execute request
 	if err := fasthttp.DoTimeout(req, resp, t.timeout); err != nil {
 		return errors.Errors{
-			fmt.Errorf("error performing request to %s: %s", t.uri, err),
+			fmt.Errorf("error performing request to %s: %w", t.uri, err),
 		}
 	}
 

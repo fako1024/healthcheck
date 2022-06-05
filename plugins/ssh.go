@@ -55,7 +55,7 @@ func (t *SSH) runEndpoint(endpoint string) error {
 
 	_, err := ssh.Dial(protoTCP, endpoint, sshConfig)
 	if err != nil && !strings.Contains(err.Error(), "ssh: unable to authenticate, attempted methods") {
-		return fmt.Errorf("error establishing SSH connection to endpoint %s: %s", endpoint, err)
+		return fmt.Errorf("error establishing SSH connection to endpoint %s: %w", endpoint, err)
 	}
 
 	return nil

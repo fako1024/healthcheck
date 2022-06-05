@@ -47,7 +47,7 @@ func (t *Proc) Run() (errs errors.Errors) {
 	dir, err := os.Open(procPath)
 	if err != nil {
 		return errors.Errors{
-			fmt.Errorf("error parsing system processes: %s", err),
+			fmt.Errorf("error parsing system processes: %w", err),
 		}
 	}
 	defer func() {
@@ -59,7 +59,7 @@ func (t *Proc) Run() (errs errors.Errors) {
 	// Extract list of running processes
 	processes, err := dir.Readdirnames(0)
 	if err != nil {
-		errs = append(errs, fmt.Errorf("error parsing system processes: %s", err))
+		errs = append(errs, fmt.Errorf("error parsing system processes: %w", err))
 		return
 	}
 
@@ -80,11 +80,9 @@ func (t *Proc) checkBinary(processes []string, expectedBinary string) error {
 
 			path := filepath.Join(procPath, process, statFile)
 			if _, err := os.Stat(path); err == nil {
-
-				/* #nosec */
-				statBytes, err := ioutil.ReadFile(path)
+				statBytes, err := ioutil.ReadFile(filepath.Clean(path))
 				if err != nil {
-					return fmt.Errorf("failed to read stat path %s: %s", path, err)
+					return fmt.Errorf("failed to read stat path %s: %w", path, err)
 				}
 
 				// Parse binary name from stat file

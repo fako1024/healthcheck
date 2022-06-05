@@ -46,12 +46,12 @@ func (t *TCP) runEndpoint(endpoint string) error {
 	// Attempt to establish the TCP connection
 	conn, err := net.Dial(protoTCP, endpoint)
 	if err != nil {
-		return fmt.Errorf("error establishing TCP connection to %s: %s", endpoint, err)
+		return fmt.Errorf("error establishing TCP connection to %s: %w", endpoint, err)
 	}
 
 	// Close the connection
 	if err = conn.Close(); err != nil {
-		return fmt.Errorf("error closing TCP connection to %s: %s", endpoint, err)
+		return fmt.Errorf("error closing TCP connection to %s: %w", endpoint, err)
 	}
 
 	return nil

@@ -45,7 +45,7 @@ func (t *SQL) Run() (errs errors.Errors) {
 	db, err := sql.Open(t.driver, "tcp("+t.host+":"+t.port+")/")
 	if err != nil {
 		return errors.Errors{
-			fmt.Errorf("error establishing SQL connection to %s: %s", "tcp("+t.host+":"+t.port+")/", err),
+			fmt.Errorf("error establishing SQL connection to %s: %w", "tcp("+t.host+":"+t.port+")/", err),
 		}
 	}
 	defer func() {
@@ -57,7 +57,7 @@ func (t *SQL) Run() (errs errors.Errors) {
 	_, err = db.Exec("DO 1")
 	if err != nil && !strings.Contains(err.Error(), ": Access denied for user") {
 		return errors.Errors{
-			fmt.Errorf("unexpected error performing base SQL query: %s", err),
+			fmt.Errorf("unexpected error performing base SQL query: %w", err),
 		}
 	}
 

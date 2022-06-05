@@ -55,7 +55,7 @@ func (t *Ping) runEndpoint(endpoint string) error {
 	// Attempt to instantiate the pinger
 	pinger, err := ping.NewPinger(endpoint)
 	if err != nil {
-		return fmt.Errorf("error preparing ping to %s: %s", endpoint, err)
+		return fmt.Errorf("error preparing ping to %s: %w", endpoint, err)
 	}
 	pinger.Count = t.count
 	pinger.Interval = t.interval
@@ -64,7 +64,7 @@ func (t *Ping) runEndpoint(endpoint string) error {
 
 	// Execute the ping
 	if err = pinger.Run(); err != nil {
-		return fmt.Errorf("error executing ping to %s: %s", endpoint, err)
+		return fmt.Errorf("error executing ping to %s: %w", endpoint, err)
 	}
 
 	// Check for packet loss
